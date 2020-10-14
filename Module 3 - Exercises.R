@@ -95,7 +95,6 @@ sd(v)
 
 # Task 6
 v[c(1,6,4,15)]
-<<<<<<< HEAD
 
 # Task 7
 v[v>50]
@@ -160,7 +159,6 @@ m2[m2 > 50]
 
 
 # 3.10.7 Exercise (data frames)
-=======
 
 # Task 7
 v[v>50]
@@ -179,7 +177,6 @@ which(v > 75| v < 25)
 
 
 # 3.10.6 Exercise (matrices)
->>>>>>> 4b41772d21ace6c5ed25dc766275b9cfc752e34b
 
 # Intro
 str(mtcars)
