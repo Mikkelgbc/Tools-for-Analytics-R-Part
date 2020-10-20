@@ -160,24 +160,6 @@ m2[m2 > 50]
 
 # 3.10.7 Exercise (data frames)
 
-# Task 7
-v[v>50]
-
-# Task 8
-v[v > 75 | v < 25]
-
-# Task 9
-v[v == 43]
-
-# Task 10
-v[is.na(v)]
-
-# Task 11
-which(v > 75| v < 25)
-
-
-# 3.10.6 Exercise (matrices)
-
 # Intro
 str(mtcars)
 glimpse(mtcars)
