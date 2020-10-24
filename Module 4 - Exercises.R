@@ -32,6 +32,7 @@ if_else(x < 7, as.integer(0),x) # If x is less than 7, assign 0, otherwise assig
 
 # Task 5: Use the if_else function to set elements with value below 7 or above 10 to NA_integer_ (which is the NA/missing value of an integer).
 if_else(x < 7|x > 10, as.integer(NA_integer_),x) # If x is less than 7, or greater than 10 assign NA, otherwise assign x
+x
 
 # Task 6: Consider code
 x <- sample(c(1:10,NA,5.5),1)
@@ -67,11 +68,12 @@ x
 # Task 2:Using a for loop, create a vector having values 2i + 4 given i=2,5,6,12
 iVal <- c(2, 5, 6, 12) # Defines the values of i
 x <- rep(NA,length(iVal)) # Creates an empty vector with the lenght og iVal
+x
 
 for (idx in 1: length(iVal)){
   x[idx] <- 2*iVal[idx]+4
 }
-x
+
 
 # Task 3: Solve Question 2 using a while loop
 iVal <- c(2, 5, 6, 12) # Defines the values of i
@@ -172,3 +174,4 @@ for (r in 1:nrow(ite)) { # iterate over rows
   }
 }
 distanceMat
+
