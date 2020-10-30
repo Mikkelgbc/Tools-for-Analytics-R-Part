@@ -1,4 +1,7 @@
 # Module 7
 
 
-# Exercise
+# Exercise 7.10 .1 (Statistikbanken)
+# Done in R Markdown
+
+
