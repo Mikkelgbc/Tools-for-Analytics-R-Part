@@ -219,112 +219,40 @@ session$packages %>%
 ```
 
 ```{r}
+# Exercise 8.5.3
 
-# Exercise 8.5.2
-
-## Install package
-install.packages("babynames")
-install.packages("skimr")
-
-## Load packages
-library(tidyverse)
-library(babynames)
+## Load package
 library(skimr)
 
-## Use skim to check babynames
-skim(babynames)
+## Set path
+path <- system.file("extdata/profit_raw.csv",package = "tfa")
+
+## Store data from csv file
+profit <- read.csv(path)
+
+## Read data
+skim(profit)
+
+## View data
+view(profit)
+
+profit %>% distinct(Quarter)
+
+
 
 # Task 1
-## 1. select(babynames, -c(year, sex, prop))
-## 2. select(babynames, name:n)
-## 3. select(babynames, starts_with("n"))
-## 4. select(babynames, ends_with("n"))
-
-## Answer: 4
+profit <- profit %>%
+  mutate(Quarter = str_remove(Quarter,"q") %>% str_remove("Q") %>% as.numeric()) %>% 
+  distinct(Quarter)
 
 
 
-# Task 2
-## a)
-babynames %>%
-  filter(prop >= 0.08)
-
-## b)
-babynames %>% 
-  filter(name == "Sea")
 
 
 
-# Task 3
-# a)
-babynames %>% 
-  filter(name == "Sue", sex == "M")
-
-# b)
-babynames %>% 
-  filter(year == 1880, n == "5" | n == "6")
-
-# c)
-babynames %>%
-  filter(name %in% c("Acura", "Lexus","Yugo"))
 
 
 
-# Task 4
-babynames %>%
-  summarize(min(n), max(n))
-
-
-
-# Task 5
-babynames %>% 
-  filter(year == 2017, sex == "F") %>% 
-  select(name, n) %>% 
-  arrange(desc(n))
-
-
-
-# Task 6
-babynames %>%
-  filter(name == "Mikkel", sex == "M")
-
-
-
-# Task 7
-babynames %>%
-  filter(name == "Khaleesi") %>% 
-  summarize(total = sum(n), first = min(year))
-
-
-
-# Task 8
-babynames %>% 
-  group_by(name, sex) %>%
-  summarize(total = sum(n)) %>%
-  arrange(desc(total))
-  
-
-
-# Task 9
-babynames %>%
-  group_by(year) %>% 
-  summarize(total=sum(n))
-
-
-
-# Task 10
-babynames %>%
-  group_by(year, sex) %>% 
-  mutate(rank = min_rank(desc(n))) %>% 
-  arrange(year, sex, desc(prop))
-
-
-
-# Task 11
-babynames %>% 
-  group_by(year, sex) %>% 
-  mutate(rank = min_rank(desc(n))) %>% 
-  filter(year > 2009, rank == 1)
 
 
 ```
