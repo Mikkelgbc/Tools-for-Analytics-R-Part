@@ -223,6 +223,7 @@ session$packages %>%
 
 ## Load package
 library(skimr)
+library(tidyverse)
 
 ## Set path
 path <- system.file("extdata/profit_raw.csv",package = "tfa")
@@ -240,20 +241,364 @@ profit %>% distinct(Quarter)
 
 
 
-# Task 1
+# Task 1 - Use mutate, str_remove and as.numeric to convert the column to a numeric by removing all ‘q’ and ‘Q’ values.
 profit <- profit %>%
+  mutate(Quarter = str_remove(Quarter,"q") %>% str_remove("Q") %>% as.numeric())
+
+profit %>% distinct(Quarter)
+
+view(profit)
+
+## Check data
+profit %>% distinct(Channel) %>% pull()
+profit %>% distinct(`Customer.ID`) %>% pull()
+profit %>% distinct(Country) %>% pull()
+profit %>% distinct(`Product.Line`) %>% pull()
+profit %>% distinct(Revenue) %>% pull() %>% head(n = 100)
+
+## Check columns not starting with $
+profit %>% filter(!str_starts(Revenue, fixed("$")))
+
+
+## Collect NA values
+na_values <- profit %>% 
+  filter(!str_starts(Revenue, fixed("$"))) %>% 
+  distinct(Revenue) %>% 
+  pull(Revenue)
+
+na_values
+
+# The expression is a bit complex. Let us break it up. Function fixed just return the fixed string ‘$’. This is necessary since the dollar sign have a special meaning in regular expressions (beyond the scope here). Function str_starts check if the string starts with a dollar sign. We use the logical negation (NOT) to find the complementary set.
+
+
+## Transform data
+profit <- profit %>% 
+  
+  ### Make all NA values equal to ?
+  mutate(Revenue = str_replace_all(Revenue, c("unknown" = "?", "Unknown" = "?"))) %>% 
+  
+  ### Replace all ? with NA
+  mutate(Revenue = na_if(Revenue, "?")) %>% 
+  
+  ### Remove all $
+  mutate(Revenue = str_remove(Revenue, fixed("$ ")) %>% as.numeric())
+
+view(profit)
+
+
+
+# Task 2 - Convert the remaining columns to numeric like shown for Revenue above
+
+## Transform Product Cost
+profit <- profit %>% 
+  
+  ### Make all NA values equal to ?
+  mutate(Product.Cost = str_replace_all(Product.Cost, c("unknown" = "?", "Unknown" = "?"))) %>% 
+  
+  ### Replace all ? with NA
+  mutate(Product.Cost = na_if(Product.Cost, "?")) %>% 
+  
+  ### Remove all $
+  mutate(Product.Cost = str_remove(Product.Cost, fixed("$ ")) %>% as.numeric())
+
+view(profit)
+
+
+## Transform Customer Service Cost
+profit <- profit %>% 
+  
+  ### Make all NA values equal to ?
+  mutate(Customer.Service.Cost = str_replace_all(Customer.Service.Cost, c("unknown" = "?", "Unknown" = "?"))) %>% 
+  
+  ### Replace all ? with NA
+  mutate(Customer.Service.Cost = na_if(Customer.Service.Cost, "?")) %>% 
+  
+  ### Remove all $
+  mutate(Customer.Service.Cost = str_remove(Customer.Service.Cost, fixed("$ ")) %>% as.numeric())
+
+view(profit)
+
+## Transform Profit
+profit <- profit %>% 
+  
+  ### Make all NA values equal to ?
+  mutate(Profit = str_replace_all(Profit, c("unknown" = "?", "Unknown" = "?"))) %>% 
+  
+  ### Replace all ? with NA
+  mutate(Profit = na_if(Profit, "?")) %>% 
+  
+  ### Remove all $
+  mutate(Profit = str_remove(Profit, fixed("$ ")) %>% as.numeric())
+
+view(profit)
+
+
+
+# Task 3 - Use the across function to apply the operations in Question 2 for a set of columns.
+profit <- read.csv(path) %>% 
+  
+  ### Make all NA values equal to ?
+  mutate(across(Revenue:Profit, ~str_replace_all(.x, c("unknown" = "?", "Unknown" = "?")))) %>% 
+  
+  ### Replace all ? with NA
+  mutate(across(Revenue:Profit, ~na_if(.x, "?"))) %>% 
+  
+  ### Remove all $
+  mutate(across(Revenue:Profit, ~str_remove(.x, fixed("$ ")) %>% as.numeric()))
+
+view(profit)
+
+
+
+# Task 4 - Write one pipe that do all the cleaning
+profit <- read.csv(path) %>% 
+  
+  ## Make Quarters a numeric value
   mutate(Quarter = str_remove(Quarter,"q") %>% str_remove("Q") %>% as.numeric()) %>% 
-  distinct(Quarter)
+  
+  ### Make all NA values equal to ?
+  mutate(across(Revenue:Profit, ~str_replace_all(.x, c("unknown" = "?", "Unknown" = "?")))) %>% 
+  
+  ### Replace all ? with NA
+  mutate(across(Revenue:Profit, ~na_if(.x, "?"))) %>% 
+  
+  ### Remove all $
+  mutate(across(Revenue:Profit, ~str_remove(.x, fixed("$ ")) %>% as.numeric()))
+
+skim(profit)
+view(profit)
 
 
 
+# Task 5 - Validate that revenue - product costs - customer service cost equals profit.
+profit <- profit %>% 
+  
+  ## Calculate Profit and Diff
+  mutate(Profit_calc = Revenue - Product.Cost - Customer.Service.Cost, Diff = abs(Profit - Profit_calc)) %>%  
+  
+  ## If Diff is between 0 and 1, then Profit is equal Profit_calc, otherwise Profit = Profit
+  mutate(Profit = if_else(Diff > 0 & Diff <= 1, Profit_calc, Profit, missing = Profit) ) 
+
+profit %>% filter(Diff == 1, is.na(Profit_calc))
 
 
 
+# Task 6 - Validate that revenue - product costs - customer service cost equals profit. 
+# To find the number of missing values (`NA`) you can create a new column counting the number of missing values:
+profit <- profit %>% 
+  
+  ## Calculate one row at a time
+  rowwise() %>% 
+  
+  ## Add new column counting number of NA across the columns Revenue to Profit
+  mutate(count_na = sum(is.na(c_across(Revenue:Profit)))) %>% 
+  
+  # Ungroup data
+  ungroup()
+
+## Filter profit for rows containg NA values in columns Revenue to Profit
+profit %>% filter(count_na >= 1)
+
+
+profit <- profit %>% 
+  
+  ## Calculate one row at a time
+  rowwise() %>% 
+  
+  ## Add new column counting number of NA across the columns Revenue to Profit
+  mutate(count_na = sum(is.na(c_across(Revenue:Profit)))) %>% 
+  
+  ## Calculate from Revenue to Profit 
+  ### If the column is missing a single value (NA = 1), then calculate value, otherwise skip)
+  mutate(Revenue = if_else(is.na(Revenue) & count_na == 1, Profit + Product.Cost + Customer.Service.Cost, Revenue, Revenue),
+         Product.Cost = if_else(is.na(Product.Cost) & count_na == 1, Revenue - Customer.Service.Cost - Profit, Product.Cost, Product.Cost),
+         Customer.Service.Cost = if_else(is.na(Customer.Service.Cost) & count_na == 1, Revenue - Product.Cost - Profit, Customer.Service.Cost, Customer.Service.Cost)) %>% 
+select(Quarter:Profit)
+
+
+# Check numbers
+profit %>% 
+  mutate(Profit_calc = Revenue - Product.Cost - Customer.Service.Cost, Diff = abs(Profit - Profit_calc)) %>% filter(Diff > 0)
+
+# Check NA
+profit %>% 
+  rowwise() %>% 
+  mutate(count_na = sum(is.na(c_across(Revenue:Profit)))) %>% 
+  filter(count_na > 0)
+
+# Comment: We went from 312 rows with missing values to 3 rows
 
 
 
+# Task 7 - Find the two best rows with highest profit in each quarter.
+profit %>%
+  group_by(Quarter) %>% 
+  top_n(2, Profit) %>% 
+  arrange(Quarter)
 
+## Alternative solution
+profit %>% 
+  group_by(Quarter) %>% 
+  slice_max(Profit, n = 2)
+
+
+
+# Task 8 - Find the two best customers with highest profit in each quarter. Is the results the same as in Question 7?
+profit %>% 
+  group_by(Quarter, Customer.ID) %>%
+  summarize(Profit = sum(Profit)) %>% 
+  top_n(2, Profit)
+
+profit %>% 
+  group_by(Quarter, Customer.ID) %>%
+  summarize(Profit = sum(Profit)) %>% 
+  slice_max(Profit, n = 2)
+
+# Answer: The results are not the same since use another group by.
+
+
+
+# Task 9 - Find the product line, customer, channel, country and quarter with the highest profit.
+
+## a)
+profit %>%
+  group_by(Product.Line) %>% 
+  summarise(Profit = sum(Profit)) %>% 
+  top_n(1, Profit)
+
+### Alternative solution
+
+profit %>%
+  group_by(Product.Line) %>% 
+  summarise(Profit = sum(Profit)) %>% 
+  slice_max(Profit)
+
+## b)
+profit %>%
+  group_by(Customer.ID) %>% 
+  summarise(Profit = sum(Profit)) %>% 
+  top_n(1, Profit)
+
+### Alternative solution
+
+profit %>%
+  group_by(Customer.ID) %>% 
+  summarise(Profit = sum(Profit)) %>% 
+  slice_max(Profit)
+
+## c)
+profit %>%
+  group_by(Channel) %>% 
+  summarise(Profit = sum(Profit)) %>% 
+  top_n(1, Profit)
+
+### Alternative solution
+
+profit %>%
+  group_by(Channel) %>% 
+  summarise(Profit = sum(Profit)) %>% 
+  slice_max(Profit)
+
+## d)
+profit %>%
+  group_by(Country) %>% 
+  summarise(Profit = sum(Profit)) %>% 
+  top_n(1, Profit)
+
+### Alternative solution
+
+profit %>%
+  group_by(Country) %>% 
+  summarise(Profit = sum(Profit)) %>% 
+  slice_max(Profit)
+
+## e)
+profit %>%
+  group_by(Quarter) %>% 
+  summarise(Profit = sum(Profit)) %>% 
+  top_n(1, Profit)
+
+### Alternative solution
+
+profit %>%
+  group_by(Quarter) %>% 
+  summarise(Profit = sum(Profit)) %>% 
+  slice_max(Profit)
+
+
+## Smarter solutions
+
+### Using a funcion
+summarise_profit <- function(data, group_var, summarise_var){
+  data %>% 
+    group_by(across({{group_var}})) %>% 
+    summarise(across({{summarise_var}},sum)) %>% 
+    slice_max(Profit)
+}
+
+
+summarise_profit(profit, Product.Line, Profit)
+summarise_profit(profit, Customer.Service.Cost, Profit)
+summarise_profit(profit, Channel, Profit)
+summarise_profit(profit, Country, Profit)
+summarise_profit(profit, Quarter, Profit)
+
+### Using purrr package to get a single tibble (if interested in the purrr package)
+val <- names(profit)[1:5]
+max_profit <- map_df(
+  val, 
+  ~{
+      tmp <- profit %>% 
+        group_by(.data[[.x]]) %>% 
+        summarise(Profit = sum(Profit), .groups = "drop") %>% 
+        slice_max(Profit)
+      tibble(by = .x, 
+        best = as.character(tmp[[1,1]]),
+        profit = tmp[[1,2]] 
+      )
+    } 
+  )
+max_profit
+
+
+
+# Task 10 - Is there rows with the same customer in different countries?
+profit %>%
+  group_by(Customer.ID) %>% 
+  distinct(Country) %>% 
+  count(Customer.ID)
+
+
+
+# Task 11 - Sort the data decreasing with respect to profit and next revenue.
+profit %>%
+  arrange(desc(Profit, Revenue))
+
+
+
+# Task 12 - Which product line has the highest and lowest total cost?
+profit %>%
+  group_by(Product.Line) %>% 
+  summarise(cost = sum(Product.Cost + Customer.Service.Cost)) %>% 
+  slice_max(cost)
+
+profit %>%
+  group_by(Product.Line) %>% 
+  summarise(cost = sum(Product.Cost + Customer.Service.Cost)) %>% 
+  slice_min(cost)
+
+
+
+# Task 13
+profit %>% 
+  mutate(New.Customer.Service.Cost = Customer.Service.Cost * 1.05,
+         New.Profit = Revenue - Product.Cost - New.Customer.Service.Cost) %>% 
+  group_by(Product.Line) %>% 
+  summarise(Customer.Service.Cost = sum(Customer.Service.Cost), Profit = sum(Profit),
+            New.Customer.Service.Cost = sum(New.Customer.Service.Cost), New.Profit = sum(New.Profit),
+            Profit.Decrease = New.Profit - Profit)
+
+rm(profit)
 
 ```
 
