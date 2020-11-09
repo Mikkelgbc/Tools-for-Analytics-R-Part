@@ -218,239 +218,33 @@ session$packages %>%
                            paging = TRUE))
 ```
 
+
 ```{r}
 
-# Exercise 9.7.1
-
-## Install package
-install.packages("dslabs")
+# Exercise 9.7.2
 
 ## Load packages
-library(tidyverse)
-library(dslabs)
+library(tfa)
+library(skimr)
 
-## Load data
-data(gapminder)
-
-## Show data
-gapminder %>% as_tibble()
-
-## Compare data
-gapminder %>% 
-  filter(year == 2015 & country %in% c("Sri Lanka", "Turkey")) %>% 
-  select(country, infant_mortality)
-
-
-
-# West vs Developing World
+## Check data
+glimpse(profit)
+skim (profit)
 
 
 
 ## Task 1
-filter(gapminder, year == 1962) %>% 
-  ggplot(aes(fertility, life_expectancy, color = continent))+
-  geom_point()
 
+# a)
 
 
-## Task 2
-filter(gapminder, year %in% c(1962, 2012)) %>% 
-  ggplot(aes(fertility, life_expectancy, color = continent))+
-  geom_point() +
-  facet_grid(cols = vars(year))
 
 
 
-## Task 3
-filter(gapminder, year %in% c(1962, 1970, 1980,1990, 2000, 2012) & continent %in% c("Europe", "Asia")) %>% 
-  ggplot(aes(fertility, life_expectancy, color = continent))+
-  geom_point() +
-  facet_wrap(vars(year))
 
-
-
-## Task 4
-filter(gapminder, continent == "Asia") %>% 
-  ggplot(aes(fertility, life_expectancy, color = year))+
-  geom_point()
-
-
-
-# Time Series Plots
-
-gapminder %>% 
-  filter(country == "United States") %>% 
-  ggplot(aes(year, fertility)) + 
-  geom_point()
-
-
-
-
-## Task 5
-gapminder %>% 
-  filter(country == "United States") %>% 
-  ggplot(aes(year, fertility)) + 
-  geom_line()
-
-
-
-## Task 6
-gapminder %>% 
-  filter(country %in% c("South Korea", "Germany")) %>% 
-  ggplot(aes(year, fertility, color = country)) + 
-  geom_line()
-
-
-
-## Task 7
-gapminder %>% 
-  filter(country %in% c("South Korea", "Germany")) %>% 
-  ggplot(aes(year, life_expectancy, color = country)) + 
-  geom_line()
-
-
-
-# Data transformation
-gapminder <- gapminder %>% 
-  mutate(dollars_per_day = gdp/population/365)
-
-past_year <- 1970
-gapminder %>% 
-  filter(year == past_year & !is.na(gdp)) %>% 
-  ggplot(aes(dollars_per_day)) + 
-  geom_histogram(binwidth = 1, color = "black")
-
-
-
-## Task 8
-gapminder %>% 
-  filter(year == past_year & !is.na(gdp)) %>% 
-  ggplot(aes(log2(dollars_per_day))) + 
-  geom_histogram(binwidth = 1, color = "black")
-
-
-
-## Task 9
-gapminder %>% 
-  filter(year == past_year & !is.na(gdp)) %>% 
-  ggplot(aes(dollars_per_day)) + 
-  geom_histogram(binwidth = 1, color = "black") +
-  scale_x_continuous(trans = "log2")
-
-
-
-## Text
-gapminder <- gapminder %>% 
-  mutate(group = case_when(
-    region %in% c("Western Europe", "Northern Europe","Southern Europe","Northern America", "Australia and New Zealand") ~ "West", TRUE ~ "Rest")) %>% 
-  as_tibble()
-
-
-
-## Task 10
-gapminder %>% 
-  filter(year == past_year & !is.na(gdp)) %>% 
-  ggplot(aes(dollars_per_day)) + 
-  geom_histogram(binwidth = 1, color = "black") +
-  facet_grid(cols = vars(group)) +
-  scale_x_continuous(trans = "log2")
-
-
-
-## Task 11
-gapminder %>% 
-  filter(year == past_year & !is.na(gdp)) %>% 
-  ggplot(aes(group, dollars_per_day)) + 
-  geom_boxplot() +
-  geom_point() +
-  scale_y_continuous(trans = "log2")
-
-
-## Text
-
-past_year <- 1970
-present_year <- 2010
-years <- c(past_year, present_year)
-country_list_1 <- gapminder %>% 
-  filter(year == past_year & !is.na(dollars_per_day)) %>% 
-  pull(country)
-
-country_list_2 <- gapminder %>% 
-  filter(year == present_year & !is.na(dollars_per_day)) %>% 
-  pull(country)
-      
-country_list <- intersect(country_list_1, country_list_2)
-
-
-
-## Task 12
-gapminder %>% 
-  filter(year %in% years & country %in% country_list) %>%
-  ggplot(aes(dollars_per_day)) + 
-  geom_histogram(binwidth = 1, color = "black") +
-  scale_x_continuous(trans = "log2") + 
-  facet_grid(year ~ group)
-
-
-
-## Task 13
-gapminder %>% 
-  filter(year %in% years & !is.na(gdp) & country %in% country_list) %>%
-  mutate(year = factor(year)) %>% 
-  ggplot(aes(group, dollars_per_day, fill = year)) + 
-  geom_boxplot() +
-  scale_y_continuous(trans = "log2")
-
-
-
-## Text
-gapminder %>% 
-  filter(year %in% years & country %in% country_list) %>%
-  ggplot(aes(dollars_per_day)) +
-  geom_density(fill = "grey") + 
-  scale_x_continuous(trans = "log2") + 
-  facet_grid(cols = vars(year))
-
-gapminder %>% 
-  filter(year %in% years & country %in% country_list) %>%
-  ggplot(aes(dollars_per_day, fill = group)) +
-  scale_x_continuous(trans = "log2") +
-  geom_density(alpha = 0.2) + 
-  facet_grid(cols = vars(year))
-
-p <- gapminder %>% 
-  filter(year %in% years & country %in% country_list) %>%
-  ggplot(aes(dollars_per_day, y = ..count.., fill = group)) +
-  scale_x_continuous(trans = "log2", limit = c(0.125, 300)) +
-  facet_grid(cols = vars(year))
-p + geom_density(alpha = 0.2) 
-
-
-
-## Task 14
-p + geom_density(alpha = 0.2, bw = 0.75)
-
-
-
-## Text
-gapminder <- gapminder %>% 
-  filter(year %in% years & country %in% country_list) %>%
-  group_by(year) %>%
-  mutate(weight = population/sum(population)*2) %>%
-  ungroup() 
-
-
-
-## Task 15
-gapminder %>% 
-  ggplot(aes(dollars_per_day, fill = group, weight = weight)) +
-  scale_x_continuous(trans = "log2", limit = c(0.125, 300)) +
-  geom_density(alpha = 0.2, bw = 0.75) +
-  facet_grid(cols = vars(year))
 
 
 ```
-
 
 
 
