@@ -222,9 +222,121 @@ session$packages %>%
 
 # Exercise 9.7.3
 
+## Install packages
+devtools::install_github("RamiKrispin/coronavirus")
+
+## Load packages
+library(tidyverse)
+library(lubridate)
+library(coronavirus)
+library(tfa)
+
+## Refresh data
+update_dataset()
+
+# Note: must restart the R session to have the updates available
+
+
+## Read dataset
+coronavirus <- read_csv(
+  "https://raw.githubusercontent.com/RamiKrispin/coronavirus/master/csv/coronavirus.csv", 
+  col_types = cols(
+    date = col_date(format = ""),
+    province = col_character(),
+    country = col_character(),
+    lat = col_double(),
+    long = col_double(),
+    type = col_character(),
+    cases = col_double()
+  )
+)
+
+
+dat <- coronavirus %>%
+  group_by(country, date, type) %>% 
+  summarise(tot_cases = sum(cases)) %>%
+  group_by(country, type) %>% 
+  arrange(date) %>%
+  mutate(cumulative_cases = cumsum(tot_cases)) %>%
+  ungroup() %>%
+  mutate(
+    days_elapsed = as.numeric(date - min(date)),
+    year = year(date)
+  ) %>% print()
 
 
 
+## Task 1
+dat %>% 
+  group_by(date, type) %>% 
+  summarise(tot_cases = sum(tot_cases)) %>%
+  ggplot(aes(date, tot_cases)) +
+  geom_col() +
+  facet_grid(rows = vars(type), scales = "free") +
+  labs(
+    title = "Number of Covid 19 cases per day",
+    y = "cases"
+  )
+
+
+
+## Text
+countries <- c(
+  "China",
+  "France",
+  "Denmark",
+  "US",
+  "Italy"
+)
+
+
+
+## Task 2
+dat %>% 
+  filter(type == "death", country %in% countries) %>% 
+  ggplot(aes(days_elapsed, cumulative_cases, color = country)) + 
+  geom_line() +
+  theme(legend.position = "bottom") +
+  labs(
+    title = "Cumulative deaths from COVID-19, selected countries",
+    x = str_c("Days since ", min(dat$date)),
+    y = "Cumulative number of deaths"
+  )
+
+
+
+## Text
+world_pop <- tfa::world_pop %>%
+  filter(country %in% countries) %>% 
+  print()
+
+dat <- dat %>% 
+  filter(country %in% countries) %>% 
+  left_join(world_pop) %>% 
+  print()
+
+any(is.na(dat))
+
+
+
+## Task 3
+dat <- dat %>% 
+  mutate(tot_cases_pop = tot_cases / pop * 100000)
+
+
+## Task 4
+dat %>% 
+  filter(date >= today() - days(21), type == "confirmed") %>% 
+  ggplot(aes(date, tot_cases_pop, fill = country)) +
+  geom_col(position = position_dodge2())
+
+
+
+## Task 5
+dat %>% 
+  filter(date >= today() - days(14), type == "confirmed", country == "Denmark") %>%
+  ggplot(aes(date, tot_cases_pop)) +
+  geom_col()
 
 
 
