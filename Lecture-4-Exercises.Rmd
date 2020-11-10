@@ -2,9 +2,10 @@
 title: "Visualization of star wars dataset using ggplot2"
 author: "Lars Relund Nielsen"
 date: "`r Sys.Date()`"
-repository_url: https://github.com/bss-osca/tfa/blob/master/slides/04-plot/04-plot_examples.Rmd
-editor_options: 
+output: pdf_document
+editor_options:
   chunk_output_type: inline
+repository_url: https://github.com/bss-osca/tfa/blob/master/slides/04-plot/04-plot_examples.Rmd
 ---
 
 ```{r setup, include=FALSE}
