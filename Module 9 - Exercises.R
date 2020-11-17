@@ -16,3 +16,10 @@
 # Exercise 9.7.3
 
 ## Done i R Markdown
+
+
+
+# Exercise 9.7.4
+
+## Done in R Markdown
+

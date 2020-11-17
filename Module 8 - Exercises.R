@@ -13,3 +13,8 @@
 # Exercise 8.5.3 (profit)
 
 ## Done i R Markdown
+
+
+# Exercise 8.5.4 (fisheries)
+
+## Done in R Markdown
