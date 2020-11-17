@@ -226,45 +226,128 @@ session$packages %>%
 # Install packages
 devtools::install_github("rstudio-education/dsbox")
 
+remove(lego_sales)
+
 ## Load packages
 library(tidyverse)
 library(dsbox)
 
 str(lego_sales)
+view(lego_sales)
 
 ## Task 1
-lego_sales <- lego_sales %>% 
-  group_by(first_name) %>% 
-  print()
-
-lego_sales
-  
-  
-  group_by(first_name) %>%
-  ggplot(aes(first_name)) +
-  geom_bar() + 
-  coord_flip() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
 lego_sales %>% 
-  slice_head()
-
-
-
-
-## Task 4
-age_group <- lego_sales %>% 
-  case_when(
-    age == 18 & age < 18 ~ "18 and under",
-    19 < age < 25 ~ "19-25",
-    26 < age < 35 ~ " 26-36",
-    36 < age < 50 ~ "35-50",
-    age == 51 & age > 51 ~ "51 and over"
-    TRUE ~ as.numeric(age)
+  count(first_name) %>% 
+  arrange(desc(n)) %>%
+  slice_max(n, n = 3) %>% 
+  print() %>% 
+  ggplot(aes(reorder(first_name, n), n)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Most common first name",
+    x = "First Name",
+    y = "Count"
   )
 
 
 
+## Task 2
+lego_sales %>% 
+  count(theme) %>% 
+  arrange(desc(n)) %>%
+  slice_max(n, n = 3) %>% 
+  print() %>% 
+  ggplot(aes(reorder(theme, n), n)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Most common theme",
+    x = "Theme",
+    y = "Count"
+  )
+
+
+
+## Task 3
+themes <- c("Star Wars", "Nexo Knights", "Gear", "Mixels")
+
+lego_sales %>% 
+  filter(theme %in% themes, subtheme != "NA") %>% 
+  select(theme, subtheme) %>% 
+  add_count(subtheme) %>%
+  distinct(n, .keep_all = TRUE) %>% 
+  arrange(desc(n)) %>% 
+  slice_max(n, n = 3) %>% 
+  print() %>% 
+  ggplot(aes(reorder(subtheme, n), n)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Most common subtheme",
+    x = "Subtheme",
+    y = "Count"
+  )
+
+
+## Task 4
+library(dplyr)
+lego_sales <- lego_sales %>% 
+  mutate(agegroup = case_when(
+    18 >= age ~ "18 and under",
+    age >= 19 & age <= 25 ~ "19-25",
+    age >= 26 & age <= 35 ~ " 26-35",
+    age >= 36 & age <= 50 ~ "36-50",
+    51 <= age ~ "51 and over"))
+
+
+
+## Task 5
+lego_sales %>% 
+  select(agegroup, quantity) %>% 
+  arrange(desc(quantity)) %>% 
+  top_n(1, quantity)
+
+
+
+## Task 6
+lego_sales <- lego_sales %>% 
+  mutate(totalprice = quantity * us_price)
+
+view(lego_sales)
+
+lego_sales %>% 
+  select(agegroup, totalprice) %>% 
+  group_by(agegroup) %>% 
+  summarise(mean = mean(totalprice)) %>% 
+  arrange(desc(mean)) %>% 
+  ggplot(aes(reorder(agegroup, mean), mean)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Average spending pr. age group",
+    x = "Age group",
+    y = "Average spending"
+  )
+
+
+
+## Task 7
+
+# What is the average number of pieces pr. theme
+
+lego_sales %>% 
+  group_by(theme) %>% 
+  summarise(avgpieces = mean(pieces)) %>%
+  filter(avgpieces != "NA") %>% 
+  ggplot(aes(reorder(theme, avgpieces), avgpieces)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Average number of pieces pr. theme",
+    x = "Theme",
+    y = "Average number of pieces"
+  )
 
 
 
