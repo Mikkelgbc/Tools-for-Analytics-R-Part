@@ -254,8 +254,8 @@ Let us first have a look at the average departure delay by airline. The `dplyr` 
 ```{r}
 dat %>%
   group_by(carrier_name) %>%
-  summarise(ave_delay = mean(dep_delay, na.rm = TRUE)) %>%
-  arrange(desc(ave_delay)) %>%
+  summarise(avg_delay = mean(dep_delay, na.rm = TRUE)) %>%
+  arrange(desc(avg_delay)) %>%
   paged_table()
 ```
 
@@ -277,8 +277,8 @@ Exercise: Done
 ```{r, echo=TRUE}
 dat %>% 
   group_by(carrier_name) %>% 
-  summarise(ave_delay = mean(dep_delay, na.rm = TRUE)) %>%
-  ggplot(aes(carrier_name, ave_delay)) + 
+  summarise(avg_delay = mean(dep_delay, na.rm = TRUE)) %>%
+  ggplot(aes(carrier_name, avg_delay)) + 
   geom_col() +
   labs(
     title = "Average delay for each airline",
@@ -330,6 +330,7 @@ dat %>%
     fill = "Carrier"
   ) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
 ```
 
 We can see that there is a small number of HUGE outliers which makes using `mean` possibly very misleading. 
@@ -557,7 +558,7 @@ Exercise: Done
 dat %>% 
   ggplot(aes(origin_name, dep_delay)) +
   geom_boxplot() +
-  coord_cartesian(ylim = c(0,0.5)) +
+  coord_cartesian(ylim = c(-0.5,0.5)) +
   labs(
     title = "Boxplot of departure delays by airport",
     x = "Airport",
@@ -589,7 +590,7 @@ dat %>%
 There are some differences. Let us try to do a heat map of the average delays:
 
 <aside>
-Exercise: Done
+Exercise: Done (Flip scale?)
 </aside>
 
 ```{r}
@@ -610,22 +611,21 @@ dat %>%
 For each carrier this give a good insight into the differences at each airport. Another way to visualize the covariation is with a boxplot. We use a little scaling to get a better picture of the delay and zoom so the delay is a most half an hour.
 
 <aside>
-Exercise: What to do?
+Exercise: What to do? (Best quess)
 </aside>
 
 ```{r}
-# dat %>% 
-#   group_by(origin_name, carrier_name) %>% 
-#   summarise(ave_delay = mean(dep_delay)) %>% 
-#   ggplot(aes(origin_name, ave_delay)) +
-#   geom_boxplot() +
-#   coord_cartesian(ylim = c(0,0.5)) +
-#   labs(
-#     title = "Average departure delays",
-#     x = "Airport",
-#     y = "Average delay"
-#   ) +
-#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+dat %>%
+  ggplot(aes(carrier_name, dep_delay, fill = origin_name)) +
+  geom_boxplot() +
+  coord_cartesian(ylim = c(0,0.5)) +
+  labs(
+    title = "Average departure delays",
+    x = "Airport",
+    y = "Average delay",
+    fill = "Airport"
+  ) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
 We may also try to plot the empirical cumulative distributions for each carrier (facet) using airport as color aesthetic and a zoom of the delay is at most 1 hour:
@@ -636,17 +636,15 @@ Exercise: By average?
 
 ```{r}
 dat %>%
-  group_by(origin_name, carrier_name) %>% 
-  summarise(ave_delay = mean(dep_delay)) %>% 
   ggplot() +
-  stat_ecdf(aes(ave_delay, color = origin_name), alpha = 0.75) +
+  stat_ecdf(aes(dep_delay, color = origin_name), alpha = 0.75) +
   coord_cartesian(xlim = c(0,1)) +
   facet_wrap(vars(carrier_name)) +
   labs(
-    title = "Distribution of average departure delays by airport",
+    title = "Distribution of departure delays for carriers by airport",
     x = "Delay (hours)",
     y = "Density",
-    color = "Carrier"
+    color = "Airport"
   ) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
@@ -668,14 +666,18 @@ dat <- dat %>%
 To explore covariation in two continuous (quantitative) variables, we can use a scatter plot:
 
 <aside>
-Exercise: What to do?
+Exercise: What to do? (Best Quess)
 </aside>
 
 ```{r}
 dat %>% 
-  ggplot(aes(sched_dep_time, arr_delay)) +
+  ggplot(aes(sched_dep_time, dep_delay)) +
   geom_point() +
-  geom_smooth(method=lm)
+  labs(
+    title = "Covariance between departure time and delay",
+    x = "Departure time",
+    y = "Delay"
+  )
 
 ```
 
@@ -688,19 +690,29 @@ dat %>%
 We use the patchwork package to plot distance against the two delays. Moreover we also add a smoothed line using `geom_smooth`:
 
 <aside>
-Exercise
+Exercise: Comment
 </aside>
 
 ```{r}
-# p1 <- dat %>% 
-#   ggplot(aes(x=distance, y= dep_delay)) + 
-#   ___
-# 
-# p2 <- dat %>% 
-#   ggplot(aes(x=distance, y= arr_delay)) + 
-#   ___
-# 
-# p1 + p2
+p1 <- dat %>%
+  ggplot(aes(x=distance, y= dep_delay)) +
+  geom_smooth() +
+  labs(
+    title = "Distance and departure delay",
+    x = "Distance",
+    y = "Delay"
+  )
+
+p2 <- dat %>%
+  ggplot(aes(x=distance, y= arr_delay)) +
+  geom_smooth() +
+  labs(
+    title = "Distance and arrival delay",
+    x = "Distance",
+    y = "Delay"
+  )
+
+p1 + p2
 ```
 
 [Comment on the results here]
@@ -726,11 +738,13 @@ dat <- dat %>%
 This could be useful for some kind of maintenance activity that needs to be done after x number of trips. The summary table is (based on `tailnum`):
 
 <aside>
-Exercise
+Exercise: Done
 </aside>
 
 ```{r}
-# code here
+dat %>% 
+  group_by(month, tailnum) %>%
+  count()
 ```
 
 As an example, consider the plane N355NB:
@@ -750,13 +764,23 @@ We see that it is an Airbus 319 with 145 seats. The plane flew `r nrow(dat1)` fl
 Let us have a look at the destinations:
 
 <aside>
-Exercise
+Exercise: What to do? (Best Quess)
 </aside>
 
 ```{r}
-# dat1 %>% 
-#   ___
-#   geom_col()
+dat1 %>%
+  group_by(dest_name) %>% 
+  count(dest_name) %>% 
+  ggplot(aes(n, reorder(dest_name, n))) +
+  geom_col() +
+  labs(
+    title = "Number of flights to each destination",
+    x = "Number of fligths",
+    y = "Destination"
+  ) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+
 ```
 
 
@@ -786,11 +810,19 @@ dat_w <- weather %>%
 We start by plotting temperature over the year with airport/origin as color aesthetic. We also add a smoothing line:
 
 <aside>
-Exercise
+Exercise: Comment
 </aside>
 
 ```{r}
-# code here
+dat_w %>% 
+  ggplot(aes(time_hour, temp, color = origin_name)) +
+  geom_smooth(alpha = 0.2) +
+  labs(
+    title = "How are the temperature fluctutating over the year?",
+    x = "Time",
+    y = "Temperature",
+    color = "Airport"
+  )
 ```
 
 Note that we have used the `alpha` aesthetic to make the lines more transparent. [Comment on the results here]
