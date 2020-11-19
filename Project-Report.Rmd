@@ -818,7 +818,7 @@ dat_w %>%
   ggplot(aes(time_hour, temp, color = origin_name)) +
   geom_smooth(alpha = 0.2) +
   labs(
-    title = "How are the temperature fluctutating over the year?",
+    title = "Fluctutating temperature over the year",
     x = "Time",
     y = "Temperature",
     color = "Airport"
@@ -832,11 +832,18 @@ Note that we have used the `alpha` aesthetic to make the lines more transparent.
 Let us start by plotting the density for each airport:
 
 <aside>
-Exercise
+Exercise: What to do? (Best Quess)
 </aside>
 
 ```{r}
-# code here
+dat_w %>% 
+  ggplot(aes(temp, fill = origin_name)) +
+  geom_density()
+
+dat_w %>% 
+  ggplot() +
+  stat_ecdf(aes(temp, color = origin_name), alpha = 0.75)
+
 ```
 
 Note the mean temparature is more or less the same (vertical lines). There is a bit fluctuations on Newark compared to for instance JFK airport (lowest spread).
@@ -844,21 +851,34 @@ Note the mean temparature is more or less the same (vertical lines). There is a 
 A closer look can be done by faceting by month:
 
 <aside>
-Exercise
+Exercise: Not done
 </aside>
 
 ```{r}
-# code here
+dat_w %>% 
+  ggplot(aes(temp, fill = origin_name)) +
+  geom_density() +
+  facet_wrap(vars(month))
+
+dat_w %>% 
+  ggplot() +
+  stat_ecdf(aes(temp, color = origin_name), alpha = 0.75) +
+  facet_wrap(vars(month))
+
 ```
 
 Finally, let us consider a boxplot of temparature for each month:
 
 <aside>
-Exercise
+Exercise: Not done
 </aside>
 
 ```{r}
-# code here
+dat_w %>% 
+  ggplot(aes(month, temp))+
+  geom_boxplot() +
+  facet_wrap(vars(origin_name))
+
 ```
 
 [Comment on the results here]
@@ -874,22 +894,47 @@ The canceled flights are:
 ```{r}
 dat_c <- flights %>%
   filter(is.na(dep_time))
+
+dat_c
 ```
 
 Let us do some analysis.
 
 <aside>
-Add a few plots you think are important.
+Exercise: Add a few plots you think are important.
 </aside>
+
+### Which airline cancels the most flights
+
+```{r}
+dat_o <- flights %>% 
+  left_join(airlines) %>% 
+  rename(carrier_name = name) %>% 
+  left_join(airports %>% select(faa, name), 
+            by = c("origin" = "faa")) %>% 
+  rename(origin_name = name) %>% 
+  left_join(airports %>% select(faa, name), 
+            by = c("dest" = "faa")) %>% 
+  rename(dest_name = name) %>% 
+  select(month, carrier_name, origin_name, dest_name, dep_time, dep_delay, arr_delay, distance, )
+  
+  
+  
+
+```
 
 ## Other insights?
 
 <aside>
-Include further analysis you think are important.
+Exercise: Include further analysis you think are important.
 </aside>
 
+```{r}
 
 
+
+
+```
 
 
 ## Colophon 
@@ -917,11 +962,3 @@ session$packages %>%
                            bInfo = FALSE,
                            paging = TRUE))
 ```
-
-
-
-
-
-
-
-
