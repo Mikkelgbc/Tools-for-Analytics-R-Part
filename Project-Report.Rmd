@@ -278,7 +278,7 @@ Exercise: Done
 dat %>% 
   group_by(carrier_name) %>% 
   summarise(avg_delay = mean(dep_delay, na.rm = TRUE)) %>%
-  ggplot(aes(carrier_name, avg_delay)) + 
+  ggplot(aes(reorder(carrier_name, desc(avg_delay)), avg_delay)) + 
   geom_col() +
   labs(
     title = "Average delay for each airline",
@@ -286,7 +286,6 @@ dat %>%
     y = "Average Delay"
   ) + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
 ```
 
 To conclude, Frontier (F9) and Express Jet (EV) have the highest average delay. However, using `mean` to summarize a value can be dangerous, because it's sensitive to outliers!
@@ -310,7 +309,6 @@ dat %>%
   group_by(carrier_name) %>% 
   summarise(sd_delay = sd(dep_delay)) %>% 
   paged_table()
-
 ```
 
 What is the distribution of departure delays by airline? Visualized as a density distribution using carrier as fill aesthetic:
@@ -330,7 +328,6 @@ dat %>%
     fill = "Carrier"
   ) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
 ```
 
 We can see that there is a small number of HUGE outliers which makes using `mean` possibly very misleading. 
@@ -343,7 +340,6 @@ Exercise: Done
 </aside>
 
 ```{r}
-
 dat %>%
   ggplot() +
   stat_ecdf(aes(x = dep_delay, color = carrier_name), alpha = 0.75) +
@@ -355,7 +351,6 @@ dat %>%
     color = "Carrier"
   ) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
 ```
 Note, the higher upper-left the distribution is, the better. That is, a carrier dominates other carriers if the line is above the other carriers. Comparing this to the standard deviations, we see that the standard deviations is not a good measure for delays.
 
@@ -380,7 +375,7 @@ dat %>%
 We can see that most flights have a median around zero. However, some carriers have larger delays compared to others. Is the variation in departure delay different given departure airport? We use departure airport as color aesthetic:
 
 <aside>
-Exercise: Comment
+Exercise: Done
 </aside>
 
 ```{r}
@@ -396,7 +391,7 @@ dat %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
-[Comment on the results here]
+It is evident that John F Kennedy Intl have the largest and most common outliers, while La Guardia and Newark Liberty Intl has fewer outliers and a lower standard deviation
 
 
 
@@ -406,7 +401,7 @@ dat %>%
 The boxplot shows median values in the center. What would happen if we used `median` instead of average delay time and make a column plot? 
 
 <aside>
-Exercise: Comment
+Exercise: Done
 </aside>
 
 ```{r}
@@ -421,9 +416,8 @@ dat %>%
     y = "Median delay (hours)"
   ) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
 ```
-That tells a bit of a different story!  [Comment on the results here]
+That tells a bit of a different story!  The median delay for most airlines are negative, meaning that they depart before scheduled. Only AirTran Airways, Frontier Airlines and Southwest Airlines have positive median delays.
 
 
 
@@ -437,10 +431,7 @@ Exercise: Done
 
 ```{r}
 dat %>% 
-  filter(dep_delay > 1) %>% 
-  count()
-
-
+  filter(dep_delay > 1)
 ```
 
 That's a lot of flights!  We can use the `dplyr` function named `count` to give us a summary of the number of rows of a that correspond to each carrier:
@@ -453,10 +444,7 @@ Exercise: Done
 dat %>% 
   group_by(carrier_name) %>% 
   filter(dep_delay > 1) %>% 
-  count(carrier_name) %>% 
-  arrange(desc(n))
-
-
+  count(carrier_name, sort = TRUE)
 ```
 
 Note that `count` has created a column named `n` which contains the counts and we ask it to sort that column for us.
@@ -464,15 +452,14 @@ Note that `count` has created a column named `n` which contains the counts and w
 We can visualize it with a column plot (note we don't need to reorder because `count` has done that for us):
 
 <aside>
-Exercise: Comment
+Exercise: Reorder/sort?
 </aside>
 
 ```{r}
 dat %>% 
   group_by(carrier_name) %>% 
   filter(dep_delay > 1) %>% 
-  count(carrier_name) %>% 
-  arrange(desc(n)) %>% 
+  count(carrier_name, sort = TRUE) %>% 
   ggplot(aes(carrier_name, n)) +
   geom_col() +
   labs(
@@ -481,10 +468,9 @@ dat %>%
     y = "Fligths delayed more than 1 hour"
   ) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-
 ```
 
-[Comment on the results here]
+We see that ExpressJet Airlines, JetBlue Airways and United Air Lines has the highest number of flights delayed more than 1 hour, while Alaska Airlines, Hawaiian Airlines and SkyWest Airlines have the lowest number of flights delayed more than 1 hour.
 
 
 
@@ -493,7 +479,7 @@ dat %>%
 We plot the delays against each other as points. 
 
 <aside>
-Exercise: Comment
+Exercise: Done
 </aside>
 
 ```{r}
@@ -505,12 +491,11 @@ dat %>%
     x = "Departure delay",
     y = "Arrival delay"
   )
-
 ```
 
 The large mass of points near (0, 0) can cause some confusion since it is hard to tell the true number of points that are plotted. This is the result of a phenomenon called overplotting. As one may guess, this corresponds to points being plotted on top of each other over and over again. When overplotting occurs, it is difficult to know the number of points being plotted. We adjust the transparency of the points by setting `alpha = 0.1`
 
-[Comment on the results here]
+We see that there are a linear relation between Departure Delay and Arrival Delay, with most flights being delay between 0 and 5 hours, and then som huge outliers of between 10 and 22 hours
 
 
 ### Are flight delays worse at different New York airports? 
@@ -525,7 +510,7 @@ Exercise: Done
 dat %>%
   group_by(origin_name) %>%
   summarize(median_delay = median(dep_delay),
-            ave_delay = mean(dep_delay))
+            avg_delay = mean(dep_delay))
 ```
 
 As we can see La Guardia seems to have the smallest delays. However, the difference is small. Lets us try to make a plot of the empirical cumulative distributions (ECD) for each airport using airport as color aesthetic and a zoom of at most 2 hours:
@@ -538,7 +523,7 @@ Exercise: Done
 dat %>%
   ggplot() +
   stat_ecdf(aes(x = dep_delay, color = origin_name), alpha = 0.75) +
-  coord_cartesian(xlim = c(0,2)) +
+  coord_cartesian(xlim = c(-0.2,2)) +
   labs(
     title = "Distribution of departure delays by airport",
     x = "Delay (hours)",
@@ -548,7 +533,7 @@ dat %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
-The median values can be found at y = 0.5. Note that La Gaardia is above the other lines indicating that it has the smallest delays no matter what fractile we consider. Another way to visialize this covariation in a categorical (airport) and a continuous (delay) variable is with a boxplot. We use a little scaling to get a better picture of the average delay and zoom so the y variable is between at most half and hour.
+The median values can be found at y = 0.5. Note that La Gaardia is above the other lines indicating that it has the smallest delays no matter what fractile we consider. Another way to visialize this covariation in a categorical (airport) and a continuous (delay) variable is with a boxplot. We use a little scaling to get a better picture of the average delay and zoom so the y variable is between at most half an hour.
 
 <aside>
 Exercise: Done
@@ -580,11 +565,10 @@ Exercise: Done
 
 ```{r}
 dat %>%
-  group_by(origin_name) %>%
+  group_by(carrier_name, origin_name) %>%
   summarise(median_delay = median(dep_delay),
-            ave_delay = mean(dep_delay)) %>% 
+            avg_delay = mean(dep_delay)) %>% 
   paged_table()
-
 ```
 
 There are some differences. Let us try to do a heat map of the average delays:
@@ -595,23 +579,22 @@ Exercise: Done (Flip scale?)
 
 ```{r}
 dat %>%
-  group_by(origin_name, carrier_name) %>%
-  summarize(ave_delay = mean(dep_delay)) %>% 
-  ggplot(aes(origin_name, carrier_name, fill = ave_delay)) +
+  group_by(carrier_name, origin_name) %>%
+  summarize(avg_delay = mean(dep_delay)) %>% 
+  ggplot(aes(origin_name, carrier_name, fill = avg_delay)) +
   geom_tile() +
   scale_fill_continuous(low = "#31a354", high = "#e5f5e0") +
   labs(
     title = "Average departure delays",
     x = "Departure airport",
     y = "Carrier",
-    fill = "Ave. delay (min)"
-  ) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+    fill = "Avg. delay (min)"
+  )
 ```
 For each carrier this give a good insight into the differences at each airport. Another way to visualize the covariation is with a boxplot. We use a little scaling to get a better picture of the delay and zoom so the delay is a most half an hour.
 
 <aside>
-Exercise: What to do? (Best quess)
+Exercise: What to do? (Best guess)
 </aside>
 
 ```{r}
@@ -648,6 +631,21 @@ dat %>%
   ) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
+dat %>%
+  group_by(carrier_name, origin_name) %>%
+  summarize(avg_delay = mean(dep_delay)) %>% 
+  ggplot() +
+  stat_ecdf(aes(avg_delay, color = origin_name), alpha = 0.75) +
+  coord_cartesian(xlim = c(0,1)) +
+  facet_wrap(vars(carrier_name)) +
+  labs(
+    title = "Distribution of departure delays for carriers by airport",
+    x = "Delay (hours)",
+    y = "Density",
+    color = "Airport"
+  ) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
 ```
 
 
@@ -666,7 +664,7 @@ dat <- dat %>%
 To explore covariation in two continuous (quantitative) variables, we can use a scatter plot:
 
 <aside>
-Exercise: What to do? (Best Quess)
+Exercise: Done
 </aside>
 
 ```{r}
@@ -681,7 +679,7 @@ dat %>%
 
 ```
 
-[Comment on the results here]
+There seems to be more outliers in the early hours from 6 to 11, and again in late afternoon from 16 to 21
 
 
 
@@ -695,7 +693,7 @@ Exercise: Comment
 
 ```{r}
 p1 <- dat %>%
-  ggplot(aes(x=distance, y= dep_delay)) +
+  ggplot(aes(distance, dep_delay)) +
   geom_smooth() +
   labs(
     title = "Distance and departure delay",
@@ -704,7 +702,7 @@ p1 <- dat %>%
   )
 
 p2 <- dat %>%
-  ggplot(aes(x=distance, y= arr_delay)) +
+  ggplot(aes(distance, arr_delay)) +
   geom_smooth() +
   labs(
     title = "Distance and arrival delay",
@@ -715,10 +713,7 @@ p2 <- dat %>%
 p1 + p2
 ```
 
-[Comment on the results here]
-
-
-
+Both in terms of departure and arrival, there seems to be more delay on shorter fligths from 0 to 1100 km. Departure delay seems to flatline afterwards, while arrival delay continues to decrease as the flight distance increases.
 
 
 
@@ -764,7 +759,7 @@ We see that it is an Airbus 319 with 145 seats. The plane flew `r nrow(dat1)` fl
 Let us have a look at the destinations:
 
 <aside>
-Exercise: What to do? (Best Quess)
+Exercise: Done
 </aside>
 
 ```{r}
@@ -774,7 +769,7 @@ dat1 %>%
   ggplot(aes(n, reorder(dest_name, n))) +
   geom_col() +
   labs(
-    title = "Number of flights to each destination",
+    title = "Number of flights to each destination in 2013",
     x = "Number of fligths",
     y = "Destination"
   ) +
@@ -825,24 +820,36 @@ dat_w %>%
   )
 ```
 
-Note that we have used the `alpha` aesthetic to make the lines more transparent. [Comment on the results here]
+Note that we have used the `alpha` aesthetic to make the lines more transparent. We see that all three airport follow the same trend in temperature. However, John F Kennedy Intl does have a sligtly lower temparture from april to october compared the others.
 
 ### Are the temparatures different in the airports? 
 
 Let us start by plotting the density for each airport:
 
 <aside>
-Exercise: What to do? (Best Quess)
+Exercise: What to do? (Best Guess)
 </aside>
 
 ```{r}
 dat_w %>% 
-  ggplot(aes(temp, fill = origin_name)) +
-  geom_density()
+  ggplot(aes(temp, color = origin_name)) +
+  geom_density() +
+  labs(
+    title = "Are the temparatures different in the airports?",
+    x = "Temperature",
+    y = "Density",
+    color = "Airport"
+  )
 
 dat_w %>% 
   ggplot() +
-  stat_ecdf(aes(temp, color = origin_name), alpha = 0.75)
+  stat_ecdf(aes(temp, color = origin_name), alpha = 0.75) +
+  labs(
+    title = "Are the temparatures different in the airports?",
+    x = "Temperature",
+    y = "Density",
+    color = "Airport"
+    )
 
 ```
 
@@ -851,40 +858,53 @@ Note the mean temparature is more or less the same (vertical lines). There is a 
 A closer look can be done by faceting by month:
 
 <aside>
-Exercise: Not done
+Exercise: What to do? (Best Guess)
 </aside>
 
 ```{r}
 dat_w %>% 
-  ggplot(aes(temp, fill = origin_name)) +
+  ggplot(aes(temp, color = origin_name)) +
   geom_density() +
-  facet_wrap(vars(month))
+  facet_wrap(vars(month)) +
+  labs(
+    title = "Are the temparatures different in the airports?",
+    x = "Temperature",
+    y = "Density",
+    color = "Airport"
+  )
 
 dat_w %>% 
   ggplot() +
   stat_ecdf(aes(temp, color = origin_name), alpha = 0.75) +
-  facet_wrap(vars(month))
+  facet_wrap(vars(month)) +
+  labs(
+    title = "Are the temparatures different in the airports?",
+    x = "Temperature",
+    y = "Density",
+    color = "Airport"
+  )
 
 ```
 
 Finally, let us consider a boxplot of temparature for each month:
 
 <aside>
-Exercise: Not done
+Exercise: What to do (Best Guess)
 </aside>
 
 ```{r}
 dat_w %>% 
-  ggplot(aes(month, temp))+
+  ggplot(aes(,temp))+
   geom_boxplot() +
-  facet_wrap(vars(origin_name))
-
+  facet_wrap(vars(month)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
-[Comment on the results here]
+We have made a boxplot for each month and can easily see potential outliers for each month. There are many outliers in march, may and october.
 
 What does the dot at the bottom of the plot for May correspond to?  Explain what might have occurred in May to produce this point.
 
+The dot in the boxplot of may is an outlier of -10 degress in a month where the average temperature is around 20 degress. This could be explained by a sensor failure, resulting in a false observation.
 
 
 ## Any insights on canceled flights?
@@ -893,9 +913,8 @@ The canceled flights are:
 
 ```{r}
 dat_c <- flights %>%
-  filter(is.na(dep_time))
-
-dat_c
+  filter(is.na(dep_time)) %>% 
+  print()
 ```
 
 Let us do some analysis.
@@ -904,10 +923,10 @@ Let us do some analysis.
 Exercise: Add a few plots you think are important.
 </aside>
 
-### Which airline cancels the most flights
+Tranform data:
 
 ```{r}
-dat_o <- flights %>% 
+dat_o <- dat_c %>% 
   left_join(airlines) %>% 
   rename(carrier_name = name) %>% 
   left_join(airports %>% select(faa, name), 
@@ -916,11 +935,55 @@ dat_o <- flights %>%
   left_join(airports %>% select(faa, name), 
             by = c("dest" = "faa")) %>% 
   rename(dest_name = name) %>% 
-  select(month, carrier_name, origin_name, dest_name, dep_time, dep_delay, arr_delay, distance, )
-  
-  
-  
+  select(month, carrier_name, origin_name, dest_name) %>% 
+  print()
 
+```
+
+
+### Which Carrier has the most cancelations?
+
+```{r}
+dat_o %>% 
+  group_by(carrier_name) %>% 
+  count(carrier_name, sort = TRUE) %>% 
+  ggplot(aes(reorder(carrier_name, n), n))+
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Number of canceled fligths pr. carrier",
+    x = "Carrier",
+    y = "Number of cancelled flights"
+  )
+```
+
+
+### Which month has the most cancelations?
+
+```{r}
+dat_o %>% 
+  ggplot() +
+  geom_bar(aes(month)) +
+  scale_x_continuous(breaks = 1:12)+
+  labs(
+    title = "Cancelations pr. month",
+    x = "Month",
+    y = "Cancelations"
+  )
+```
+
+
+### Which Departure Airport has the most cancelations?
+
+```{r}
+dat_o %>% 
+  ggplot() +
+  geom_bar(aes(origin_name)) +
+  labs(
+    title = "Cancelations pr. departure airport",
+    x = "Departure airport",
+    y = "Cancelations"
+  )
 ```
 
 ## Other insights?
@@ -929,13 +992,42 @@ dat_o <- flights %>%
 Exercise: Include further analysis you think are important.
 </aside>
 
+### Most popular Aircraft Manufacturer
+
 ```{r}
-
-
-
-
+dat %>% 
+  group_by(plane_manufacturer) %>% 
+  distinct(tailnum) %>% 
+  count(plane_manufacturer, sort = TRUE) %>% 
+  filter(n > 100) %>% 
+  ggplot() +
+  geom_col(aes(reorder(plane_manufacturer, n), n)) +
+  coord_flip() +
+  labs(
+    title = "Most popular aircraft manufacturer (> 100)",
+    x = "Aircraft Manufacturer",
+    y = "Number of Aircrafts"
+  )
 ```
+### Most popular plane model for the three biggest manufacturers (Boeing, Airbus and Bombardier)?
 
+```{r}
+dat %>% 
+  group_by(plane_manufacturer) %>%
+  distinct(tailnum, .keep_all = TRUE) %>% 
+  filter(plane_manufacturer %in% c("BOEING", "AIRBUS", "BOMBARDIER INC")) %>%
+  count(plane_model) %>% 
+  slice_max(n) %>% 
+  ggplot(aes(reorder(plane_model, n), n, fill = plane_manufacturer)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Most popular aircraft model for the three biggest manufactures",
+    x = "Number of aircraft models",
+    y = " Aircraft Model",
+    fill = "Aircraft Manufacturer"
+  )
+```
 
 ## Colophon 
 <!-- Always keep this section -->
