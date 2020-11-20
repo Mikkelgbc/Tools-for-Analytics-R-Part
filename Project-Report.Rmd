@@ -1023,8 +1023,8 @@ dat %>%
   coord_flip() +
   labs(
     title = "Most popular aircraft model for the three biggest manufactures",
-    x = "Number of aircraft models",
-    y = " Aircraft Model",
+    x = " Aircraft Model",
+    y = "Number of aircraft models",
     fill = "Aircraft Manufacturer"
   )
 ```
