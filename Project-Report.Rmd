@@ -994,25 +994,35 @@ Exercise: Include further analysis you think are important.
 
 ### Most popular Aircraft Manufacturer
 
+Transform data to merge manufacture variants
+
 ```{r}
-dat %>% 
+dat1 <- dat
+dat1 [which(dat1 $plane_manufacturer == "AIRBUS INDUSTRIE"),] $plane_manufacturer <- "AIRBUS"
+dat1 [which(dat1 $plane_manufacturer == "CANADAIR LTD"),] $plane_manufacturer <- "CANADAIR"
+dat1 [which(dat1 $plane_manufacturer %in% c("MCDONNELL DOUGLAS AIRCRAFT CO", "MCDONNELL DOUGLAS CORPORATION")),] $plane_manufacturer <- "MCDONNELL DOUGLAS"
+```
+
+```{r}
+dat1 %>% 
   group_by(plane_manufacturer) %>% 
   distinct(tailnum) %>% 
   count(plane_manufacturer, sort = TRUE) %>% 
-  filter(n > 100) %>% 
+  filter(n > 10) %>% 
   ggplot() +
   geom_col(aes(reorder(plane_manufacturer, n), n)) +
   coord_flip() +
   labs(
-    title = "Most popular aircraft manufacturer (> 100)",
+    title = "Most popular aircraft manufacturer (> 10)",
     x = "Aircraft Manufacturer",
     y = "Number of Aircrafts"
   )
 ```
+
 ### Most popular plane model for the three biggest manufacturers (Boeing, Airbus and Bombardier)?
 
 ```{r}
-dat %>% 
+dat1 %>% 
   group_by(plane_manufacturer) %>%
   distinct(tailnum, .keep_all = TRUE) %>% 
   filter(plane_manufacturer %in% c("BOEING", "AIRBUS", "BOMBARDIER INC")) %>%
@@ -1028,6 +1038,23 @@ dat %>%
     fill = "Aircraft Manufacturer"
   )
 ```
+### What is the average distance pr. airline?
+
+```{r}
+dat %>% 
+  group_by(carrier_name) %>% 
+  summarise(avg_distance = mean(distance)) %>% 
+  ggplot() +
+  geom_col(aes(avg_distance, reorder(carrier_name, avg_distance))) +
+  labs(
+    title = "Average distance pr. airline",
+    x = "Average Distance",
+    y = "Airline"
+  )
+```
+
+
+
 
 ## Colophon 
 <!-- Always keep this section -->
