@@ -35,17 +35,6 @@ knitr::opts_chunk$set(
 # use xaringan::inf_mr() for instant preview
 ```
 
-<!-- Some css for the comments (delete) -->
-```{css, echo=FALSE}
-.comment {
-  color: #F1948A;
-  border-color: black;
-  border-style: dashed;
-  border-width: thin;
-  padding: 10px;
-}
-```
-
 ## Introduction
 
 We consider the datasets available from the package `nycflights13` that contains information about every flight that departed from New York City in 2013. Let us have a look at the datasets. First, we load the packages need for this report:
