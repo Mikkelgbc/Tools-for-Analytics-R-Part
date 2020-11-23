@@ -644,14 +644,13 @@ Let us have a look at the destinations:
 ```{r}
 dat1 %>%
   count(dest_name) %>% 
-  ggplot(aes(n, reorder(dest_name, n))) +
+  ggplot(aes(n, dest_name)) +
   geom_col() +
   labs(
     title = "Number of flights to each destination in 2013",
     x = "Number of fligths",
     y = "Destination"
-  ) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  )
 
 dat1 %>%
   ggplot(aes(distance, dest_name)) +
@@ -770,7 +769,7 @@ dat_c <- flights %>%
 
 Let us do some analysis.
 
-We transform data to add more information to the cancelled fligths:
+We transform data to add more information to the canceled fligths:
 
 ```{r}
 dat_o <- dat_c %>% 
@@ -787,7 +786,7 @@ dat_o <- dat_c %>%
 ```
 
 
-### Which carrier has the most cancelations? (mutate?)
+### Which carrier has the most cancelations?
 
 ```{r}
 dat_o %>% 
