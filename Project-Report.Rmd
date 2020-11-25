@@ -427,7 +427,7 @@ dat %>%
 
 The large mass of points near (0, 0) can cause some confusion since it is hard to tell the true number of points that are plotted. This is the result of a phenomenon called overplotting. As one may guess, this corresponds to points being plotted on top of each other over and over again. When overplotting occurs, it is difficult to know the number of points being plotted. We adjust the transparency of the points by setting `alpha = 0.1`
 
-We see that there are a linear relation between Departure Delay and Arrival Delay, with most flights being delay between 0 and 5 hours, and then some huge outliers of between 10 and 22 hours
+We see that there are a linear relation between Departure Delay and Arrival Delay, with most flights being delayed between 0 and 5 hours, and then some huge outliers of between 10 and 22 hours
 
 
 ### Are flight delays worse at different New York airports? 
@@ -761,7 +761,7 @@ Let us do some analysis.
 We transform data to add more information to the canceled fligths:
 
 ```{r}
-dat_o <- dat_c %>% 
+dat_o <- flights %>% 
   left_join(airlines) %>% 
   rename(carrier_name = name) %>% 
   left_join(airports %>% select(faa, name), 
@@ -770,8 +770,7 @@ dat_o <- dat_c %>%
   left_join(airports %>% select(faa, name), 
             by = c("dest" = "faa")) %>% 
   rename(dest_name = name) %>% 
-  select(month, carrier_name, origin_name, dest_name) %>% 
-  print()
+  select(month, carrier_name, origin_name, dest_name, dep_time)
 ```
 
 
@@ -779,7 +778,7 @@ dat_o <- dat_c %>%
 
 ```{r}
 dat_o %>% 
-  group_by(carrier_name) %>% 
+  filter(is.na(dep_time)) %>% 
   count(carrier_name, sort = TRUE) %>% 
   ggplot(aes(reorder(carrier_name, n), n))+
   geom_col() +
@@ -787,15 +786,38 @@ dat_o %>%
   labs(
     title = "Number of canceled fligths pr. carrier",
     x = "Carrier",
-    y = "Number of cancelled flights"
+    y = "Number of canceled flights"
   )
 ```
+We see that ExpressJet, Envoy and Endeavor has the most cancellations, while SkyWest, Frontier and Alaska Airlines has close to 0 cancellations. Lets look at the proportion of canceled fligths.
+
+
+
+### Which carrier has the biggest proportion of cancelations?
+
+```{r}
+dat_o %>% 
+  group_by(carrier_name) %>% 
+  summarise(cancelled =sum(is.na(dep_time)),
+            total = n(),
+            prop_cancelled = cancelled/total) %>% 
+  ggplot(aes(reorder(carrier_name, prop_cancelled), prop_cancelled))+
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Proportion of canceled fligths pr. carrier",
+    x = "Carrier",
+    y = "Proportion of canceled flights"
+  )
+```
+We now see that SkyWest actually has the biggest proportion of canceled flights along with Mesa Airlines.
 
 
 ### Which month has the most cancelations?
 
 ```{r}
 dat_o %>% 
+  filter(is.na(dep_time)) %>% 
   ggplot() +
   geom_bar(aes(month)) +
   scale_x_continuous(breaks = 1:12)+
@@ -805,24 +827,48 @@ dat_o %>%
     y = "Cancelations"
   )
 ```
+We see that february, june and july, aswell as december has the most cancellations. What if we again look at the proportion of canceled flights?
+
+
+### Which month has the biggest proportion of cancelations?
+
+```{r}
+dat_o %>% 
+  group_by(month) %>% 
+  summarise(cancelled =sum(is.na(dep_time)),
+            total = n(),
+            prop_cancelled = cancelled/total) %>%
+  arrange(desc(prop_cancelled)) %>% 
+  ggplot(aes(month, prop_cancelled)) +
+  geom_col() +
+  scale_x_continuous(breaks = 1:12)+
+  labs(
+    title = "Cancelations pr. month",
+    x = "Month",
+    y = "Cancelations"
+  )
+```
+We see a similar trend here.
 
 
 ### Which Departure Airport has the most cancelations?
 
 ```{r}
 dat_o %>% 
-  ggplot() +
+  filter(is.na(dep_time)) %>% 
+  ggplot(fill = origin_name) +
   geom_bar(aes(origin_name)) +
   labs(
     title = "Cancelations pr. departure airport",
     x = "Departure airport",
-    y = "Cancelations"
+    y = "Cancelations",
+    fill = "Airport"
   )
 ```
 
 ## Other insights?
 
-### Most popular Aircraft Manufacturer
+### What is the most popular Aircraft Manufacturer?
 
 Transform data to merge manufacture variants
 
@@ -830,7 +876,8 @@ Transform data to merge manufacture variants
 dat2 <- dat
 dat2 [which(dat1 $plane_manufacturer == "AIRBUS INDUSTRIE"),] $plane_manufacturer <- "AIRBUS"
 dat2 [which(dat1 $plane_manufacturer == "CANADAIR LTD"),] $plane_manufacturer <- "CANADAIR"
-dat2 [which(dat1 $plane_manufacturer %in% c("MCDONNELL DOUGLAS AIRCRAFT CO", "MCDONNELL DOUGLAS CORPORATION")),] $plane_manufacturer <- "MCDONNELL DOUGLAS"
+dat2 [which(dat1 $plane_manufacturer %in% c("MCDONNELL DOUGLAS AIRCRAFT CO",
+                                            "MCDONNELL DOUGLAS CORPORATION")),] $plane_manufacturer <- "MCDONNELL DOUGLAS"
 ```
 
 ```{r}
