@@ -508,7 +508,7 @@ dat %>%
   coord_cartesian(ylim = c(-0.5,0.5)) +
   labs(
     title = "Average departure delays",
-    x = "Airport",
+    x = "Carrier",
     y = "Average delay",
     fill = "Airport"
   ) +
@@ -843,9 +843,9 @@ dat_o %>%
   geom_col() +
   scale_x_continuous(breaks = 1:12)+
   labs(
-    title = "Cancelations pr. month",
+    title = "Proportion of cancelations pr. month",
     x = "Month",
-    y = "Cancelations"
+    y = "Proportion of cancelations"
   )
 ```
 We see a similar trend here.
@@ -865,6 +865,28 @@ dat_o %>%
     fill = "Airport"
   )
 ```
+We see that John F Kennedy Intl has the lowest amount of cancelations compared to La Guardia and Newark. What if we again look in terms of proportion?
+
+
+### Which Departure Airport has the highest proportion of cancelations?
+
+```{r}
+dat_o %>% 
+  group_by(origin_name) %>% 
+  summarise(cancelled =sum(is.na(dep_time)),
+            total = n(),
+            prop_cancelled = cancelled/total) %>%
+  ggplot(fill = origin_name) +
+  geom_col(aes(origin_name, prop_cancelled)) +
+  labs(
+    title = "Proportion of cancelations pr. departure airport",
+    x = "Departure airport",
+    y = "Proportion of cancelations",
+    fill = "Airport"
+  )
+```
+Again, we see than John F Kennedy Intl has the lowest proportion of cancellations, but also that La Guardia has the highest proportion of cancellations.
+
 
 ## Other insights?
 
@@ -874,9 +896,9 @@ Transform data to merge manufacture variants
 
 ```{r}
 dat2 <- dat
-dat2 [which(dat1 $plane_manufacturer == "AIRBUS INDUSTRIE"),] $plane_manufacturer <- "AIRBUS"
-dat2 [which(dat1 $plane_manufacturer == "CANADAIR LTD"),] $plane_manufacturer <- "CANADAIR"
-dat2 [which(dat1 $plane_manufacturer %in% c("MCDONNELL DOUGLAS AIRCRAFT CO",
+dat2 [which(dat $plane_manufacturer == "AIRBUS INDUSTRIE"),] $plane_manufacturer <- "AIRBUS"
+dat2 [which(dat $plane_manufacturer == "CANADAIR LTD"),] $plane_manufacturer <- "CANADAIR"
+dat2 [which(dat $plane_manufacturer %in% c("MCDONNELL DOUGLAS AIRCRAFT CO",
                                             "MCDONNELL DOUGLAS CORPORATION")),] $plane_manufacturer <- "MCDONNELL DOUGLAS"
 ```
 
@@ -895,6 +917,8 @@ dat2 %>%
     y = "Number of Aircrafts"
   )
 ```
+The three most popular aircraft manufacturer is Boeing, Airbus and Bombardier. We also see a high number of unknown aircraft manufactures.
+
 
 ### Most popular plane model for the three biggest manufacturers (Boeing, Airbus and Bombardier)?
 
@@ -915,6 +939,9 @@ dat2 %>%
     fill = "Aircraft Manufacturer"
   )
 ```
+Boeing has the most popular aircraft model with their Boeing 737, followed by Airbus A320.
+
+
 ### What is the average distance pr. airline?
 
 ```{r}
@@ -929,7 +956,8 @@ dat %>%
     y = "Airline"
   )
 ```
-
+Interestingly we see that Hawaiian Airlines has the highest average flight distance, probably because of their location in the middle of the Pacific Ocean. 
+Also Alaska Airlines is high on the list. We can also deduce that Mesa, SkyWest and Endeavor etc. are regional airlines as their average flight distance is fairly low.
 
 
 
