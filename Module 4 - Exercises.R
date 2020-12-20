@@ -81,7 +81,7 @@ x
 
 # Task 2:Using a for loop, create a vector having values 2i + 4 given i=2,5,6,12
 iVal <- c(2, 5, 6, 12) # Defines the values of i
-x <- rep(NA,length(iVal)) # Creates an empty vector with the lenght og iVal
+x <- rep(NA,length(iVal)) # Creates an empty vector with the length og iVal
 x
 
 for (idx in 1: length(iVal)){
@@ -92,7 +92,7 @@ for (idx in 1: length(iVal)){
 
 # Task 3: Solve Question 2 using a while loop
 iVal <- c(2, 5, 6, 12) # Defines the values of i
-x <- rep(NA,length(iVal)) # Creates an empty vector with the length og iVal
+x <- rep(NA,length(iVal)) # Creates an empty vector with the length and iVal
 idx <- 1 # Used to count number of iterations
 while(idx < 5){ # Loop while the number of iterations is less than 5 (=4)
   x[idx] <- 2*iVal[idx]+4

@@ -23,19 +23,28 @@ head(mtcars)
 ?mtcars
 
 library(tidyverse)
-mtcars %>% select(cyl,gear,hp,mpg) %>% filter(gear == 4 & cyl == 4)
+mtcars %>% 
+  select(cyl,gear,hp,mpg) %>%
+  filter(gear == 4 & cyl == 4)
 
 # Task 1
-mtcars %>% select(mpg,hp,gear,am,gear)
+mtcars %>% 
+  select(mpg,hp,gear,am,gear)
 
 # Task 2
-mtcars %>% select(mpg,hp,gear,am,gear) %>% filter(mpg < 20 & gear == 4)
+mtcars %>% 
+  select(mpg,hp,gear,am,gear) %>% 
+  filter(mpg < 20 & gear == 4)
 
 # Task 3
-mtcars %>% select(mpg,hp,gear,am,gear) %>% filter(mpg < 20 | gear == 4)
+mtcars %>% 
+  select(mpg,hp,gear,am,gear) %>% 
+  filter(mpg < 20 | gear == 4)
 
 # Task 4
-mtcars %>% filter(mpg < 20 & gear == 4) %>% select(wt,vs)
+mtcars %>% 
+  filter(mpg < 20 & gear == 4) %>%
+  select(wt,vs)
 
 # Task 5
 dat <- mtcars
@@ -212,7 +221,7 @@ class(x) # List
 class(y) # character
 
 # What is the difference between using one or two brackets?
-# Answer: Nothing..?
+# Answer: One corresponds to the list, while two corresponds to the character (same result)
 
 # Task 2
 names(lst) <- c("age","Name","Male?","Weight")
@@ -237,6 +246,7 @@ lst$name$last
 str1 <- "Business Analytics (BA) refers to the scientific process of transforming data into insight for making better decisions in business."
 str2 <- 'BA can both be seen as the complete decision making process for solving a business problem or as a set of methodologies that enable the creation of business value.'
 str3 <- c(str1, str2)  # vector of strings
+str3
 
 # The stringr package in tidyverse provides many useful functions for string manipulation. We will consider a few.
 
@@ -255,12 +265,15 @@ str_detect(str2,"Business")
 
 # Task 2 - Define a new string that replace BA with Business Analytics in str2
 str5 <- str_replace(str2, "BA", "Business Analytics")
+str5
 
 # Task 3 - In the string from Question 2, remove or as a set of methodologies that enable the creation of business value
 str_remove(str5, " or as a set of methodologies that enable the creation of business value")
+str5
 
 # Task 4 - In the string from Question 3, add This course will focus on programming and descriptive analytics.
 str5 <- str_c(str5, "This course will focus on programming and descriptive analytics.",sep=" ")
+str5
 
 # Task 5
 str5 <- str_replace(str5, "analytics", "business analytics")

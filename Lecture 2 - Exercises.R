@@ -1,3 +1,5 @@
+library(tidyverse)
+
 # Exercise 1
 dice <- 1:6
 card_suit <- c("clubs", "diamonds", "hearts", "spades")
@@ -11,7 +13,6 @@ for (r in 1:nrow(ite)) { # iterate over rows
 
 
 # Exercise 2
-library(tidyverse)
 get_combinations <- function(dice, card) {
   ite <- expand_grid(d = dice, c = card)
   found <- FALSE

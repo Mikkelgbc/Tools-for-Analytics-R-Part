@@ -1,230 +1,13 @@
----
-title: "[Your title (e.g Exercise 4.3.2)]"
-author:
-  - name: [First author name]
-    #url: https://example.com/norajones
-    affiliation: cand.merc (OSCM)
-    #affiliation_url: https://example.com/spacelysprokets
-  - name: [Second author name]
-    affiliation: cand.merc (?)
-  - name: [Third author name]
-    affiliation: cand.merc (?)
-output: 
-  html_document:
-    toc: true
-    toc_depth: 2
-date: "`r Sys.Date()`"
----
-
-
-```{r setup, include=FALSE}
-# set default chunk options
-knitr::opts_chunk$set(
-  echo = TRUE,
-  cache = TRUE,
-  autodep = TRUE
-  )
-```
-
-<!-- Some css for the comments (delete) -->
-```{css, echo=FALSE}
-.comment {
-  color: gold;
-  border-style: dashed;
-  border-width: thin;
-  padding: 10px;
-}
-```
-
-
-<div class="comment">This is a template for a TFA exercise. Modify it as needed. Text in gold are comments. Some example text and code is given. Delete as needed.</div>
-
-## Introduction
-
-We load the following packages:
-
-```{r}
-library(tidyverse)
-```
-
-<div class="comment">
-Maybe a short intro about the exercise and how data are imported.
-
-Some help links:
-
-- To use this template you must have installed the tfa package (`remotes::install_github("bss-osca/tfa/tfa-package")`). Go to **File > New File > R Markdown...** and select the **From template** in the left column and then **TFA Exercise**.
-- For Markdown basics see **Help > Markdown Quick Reference** in RStudio.
-- For R Markdown basics see the **Help > Cheatsheets > R Markdown Cheat Sheet** in RStudio.
-- Learn more about he Distill format for R Markdown at <https://rstudio.github.io/distill>.
-- To see the possible options for R chunks see <https://yihui.org/knitr/options/>.
-</div>
-
-Consider a problem of determining the best sequencing of jobs on a machine. A set of startup costs are given for 5 machines:
-
-```{r}
-startup_costs <- c(27, 28, 32, 35, 26)
-startup_costs
-```
-
-Moreover, when changing from one job to another job the setup costs are given as:
-
-```{r}
-setup_costs <- matrix(c(
-  NA, 35, 22, 44, 12,
-  49, NA, 46, 38, 17,
-  46, 12, NA, 29, 41,
-  23, 37, 31, NA, 26,
-  17, 23, 28, 34, NA), 
-  byrow = T, nrow = 5)
-setup_costs
-```
-
-The goal of the problem is to determine a sequence of jobs which minimizes the total setup cost including the startup cost.
-
-One possible way to find a sequence is the use a greedy strategy:
-
-```
-Greedy Algorithm
-Step 0: Start with the job which has minimal startup cost.
-Step 1: Select the next job as the job not already done 
-        with minimal setup cost given current job. 
-Step 2: Set next job in Step 1 to current job and 
-        go to Step 1 if not all jobs are done.
-```
-
-The greedy algorithm can be implemented as:
-
-```{r}
-greedy <- function(startup, setup) {
-  jobs <- nrow(setup)
-  cur_job <- which.min(startup)
-  cost <- startup[cur_job]
-  cat("Start job:", cur_job, "\n")
-  job_seq <- cur_job
-  setup[, cur_job] <- NA
-  # browser()
-  for (i in 1:(jobs-1)) {
-    next_job <- which.min(setup[cur_job, ])
-    cat("Next job:", next_job, "\n") 
-    cost <- cost + setup[cur_job, next_job]
-    job_seq <- c(job_seq, next_job)
-    cur_job <- next_job
-    setup[, cur_job] <- NA
-  }
-  # print(setup)
-  return(list(seq = job_seq, cost = cost))
-}
-greedy(startup_costs, setup_costs)
-```
-
-First, the job with minimum startup cost is found using function `which.min` and we define cost a the startup cost. We use `cat` to make some debugging statements and initialize `job_seq` with the first job. Next we have to have a way ignoring jobs already done. We do that here by setting the columns of setup cost equal to NA for jobs already done. Hence they will not be selected by `which.min`. The `for` loop runs 4 times and selects jobs and accumulate the total cost.
-
-
-## Question 1
-
-A well-known better strategy is to:
-
-```
-Better Algorithm
-Step 0: Subtract minimum of startup and setup cost for each job from setup and 
-        startup costs (that is columnwise)
-Step 1: Call the greedy algorithm with the modified costs. Note that the total 
-        cost returned has to be modified a bit.
-```
-
-*Implement a `better` function calculating a better strategy. Hint: to find the minimum column costs you may use `apply(rbind(startup, setup), 2, min, na.rm = T)`.*
-
-The function becomes:
-
-```{r}
-better <- function(startup, setup) {
-  jobs <- nrow(setup)
-  min_col_val <- apply(rbind(startup, setup), 2, min, na.rm = T)
-  startup <- startup - min_col_val
-  min_mat <- matrix(rep(min_col_val, jobs), 
-                    ncol = jobs, byrow = T)
-  setup <- setup - min_mat
-  lst <- greedy(startup, setup)
-  lst$cost <- lst$cost + sum(min_col_val)
-  return(lst)
-}
-```
-
-If we run the function the job sequence becomes:
-
-```{r}
-res <- better(startup_costs, setup_costs)
-```
-
-That is we use job sequence `r res$seq` with a cost of `r res$cost`.
-
-
-## Question 2
-
-*Assume that the startup costs are 27, 28, 55, 120 and 26 instead. How will that affect the job sequence using the better strategy?*
-
-We modify the startup costs and run `better`:
-
-```{r}
-startup_costs <- c(27, 28, 55, 120, 26)
-res <- better(startup_costs, setup_costs)
-```
-
-The job sequence now becomes `r res$seq` with a cost of `r res$cost`.
-
-
-## Question 3
-
-*Make a plot of the job sequence*
-
-```{r, layout="l-body-outset", fig.asp = 0.25, eval=FALSE}
-library(ggraph)
-library(tidygraph)
-edges <- tibble(from = res$seq[1:4], to = res$seq[2:5])
-graph <- as_tbl_graph(edges) 
-ggraph(graph, layout = 'linear') + 
-  geom_edge_link(arrow = arrow(length = unit(4, 'mm')), 
-                 end_cap = circle(4, 'mm'), 
-                 start_cap  = circle(4, 'mm')) + 
-  geom_node_point(colour = "gray", size = 9, alpha = 0.5) +
-  geom_node_text(aes(label=name)) +
-  theme_graph()
-```
-
-
-## Colophon 
-<!-- Always keep this section for reproducibility -->
-
-This report has been created inside [RStudio](http://www.rstudio.com/ide/) using [R Markdown](https://rmarkdown.rstudio.com/). 
-
-The report was built using:
-
-```{r message = FALSE, warning = FALSE, echo = FALSE}
-session <- devtools::session_info()
-session$platform
-```
-
-Along with these packages:
-
-```{r message = FALSE, warning = FALSE, echo = FALSE}
-session$packages %>% 
-  select(package, loadedversion, date, source) %>% 
-  DT::datatable(rownames = FALSE,
-                class = 'cell-border stripe',
-                filter = list(position = 'top'),
-                options = list(pageLength = 5, 
-                           autoWidth = FALSE,
-                           bInfo = FALSE,
-                           paging = TRUE))
-```
-
-```{r}
 # Exercise 8.5.3
 
+```{r}
 ## Load package
 library(skimr)
 library(tidyverse)
 
+```
+
+```{r}
 ## Set path
 path <- system.file("extdata/profit_raw.csv",package = "tfa")
 
@@ -239,8 +22,10 @@ view(profit)
 
 profit %>% distinct(Quarter)
 
+```
 
 
+```{r}
 # Task 1 - Use mutate, str_remove and as.numeric to convert the column to a numeric by removing all ‘q’ and ‘Q’ values.
 profit <- profit %>%
   mutate(Quarter = str_remove(Quarter,"q") %>% str_remove("Q") %>% as.numeric())
@@ -250,11 +35,26 @@ profit %>% distinct(Quarter)
 view(profit)
 
 ## Check data
-profit %>% distinct(Channel) %>% pull()
-profit %>% distinct(`Customer.ID`) %>% pull()
-profit %>% distinct(Country) %>% pull()
-profit %>% distinct(`Product.Line`) %>% pull()
-profit %>% distinct(Revenue) %>% pull() %>% head(n = 100)
+profit %>% 
+  distinct(Channel) %>% 
+  pull()
+
+profit %>% 
+  distinct(`Customer.ID`) %>% 
+  pull()
+
+profit %>% 
+  distinct(Country) %>% 
+  pull()
+
+profit %>% 
+  distinct(`Product.Line`) %>% 
+  pull()
+
+profit %>% 
+  distinct(Revenue) %>% 
+  pull() %>% 
+  head(n = 100)
 
 ## Check columns not starting with $
 profit %>% filter(!str_starts(Revenue, fixed("$")))
@@ -283,11 +83,18 @@ profit <- profit %>%
   ### Remove all $
   mutate(Revenue = str_remove(Revenue, fixed("$ ")) %>% as.numeric())
 
-view(profit)
+profit %>% 
+  distinct(Revenue) %>% 
+  pull() %>% 
+  head(n = 100)
 
+```
 
-
+```{r}
 # Task 2 - Convert the remaining columns to numeric like shown for Revenue above
+
+# Check Product Cost
+profit %>% filter(!str_starts(Product.Cost, fixed("$")))
 
 ## Transform Product Cost
 profit <- profit %>% 
@@ -301,8 +108,10 @@ profit <- profit %>%
   ### Remove all $
   mutate(Product.Cost = str_remove(Product.Cost, fixed("$ ")) %>% as.numeric())
 
-view(profit)
 
+
+# Check Customer Service Cost
+profit %>% filter(!str_starts(Customer.Service.Cost, fixed("$")))
 
 ## Transform Customer Service Cost
 profit <- profit %>% 
@@ -316,24 +125,24 @@ profit <- profit %>%
   ### Remove all $
   mutate(Customer.Service.Cost = str_remove(Customer.Service.Cost, fixed("$ ")) %>% as.numeric())
 
-view(profit)
+
+
+# Check Profit
+profit %>% filter(!str_starts(Profit, fixed("$")))
+
+# Profit only has one problem. Every row starts with "$"
 
 ## Transform Profit
 profit <- profit %>% 
-  
-  ### Make all NA values equal to ?
-  mutate(Profit = str_replace_all(Profit, c("unknown" = "?", "Unknown" = "?"))) %>% 
-  
-  ### Replace all ? with NA
-  mutate(Profit = na_if(Profit, "?")) %>% 
   
   ### Remove all $
   mutate(Profit = str_remove(Profit, fixed("$ ")) %>% as.numeric())
 
 view(profit)
 
+```
 
-
+```{r}
 # Task 3 - Use the across function to apply the operations in Question 2 for a set of columns.
 profit <- read.csv(path) %>% 
   
@@ -348,8 +157,9 @@ profit <- read.csv(path) %>%
 
 view(profit)
 
+```
 
-
+```{r}
 # Task 4 - Write one pipe that do all the cleaning
 profit <- read.csv(path) %>% 
   
@@ -368,23 +178,27 @@ profit <- read.csv(path) %>%
 skim(profit)
 view(profit)
 
+```
 
-
+```{r}
 # Task 5 - Validate that revenue - product costs - customer service cost equals profit.
 profit <- profit %>% 
   
-  ## Calculate Profit and Diff
+  ## Calculate Profit and Diff (as absolute number)
   mutate(Profit_calc = Revenue - Product.Cost - Customer.Service.Cost, Diff = abs(Profit - Profit_calc)) %>%  
   
   ## If Diff is between 0 and 1, then Profit is equal Profit_calc, otherwise Profit = Profit
-  mutate(Profit = if_else(Diff > 0 & Diff <= 1, Profit_calc, Profit, missing = Profit) ) 
+  mutate(Profit = if_else(Diff > 0 & Diff <= 1, Profit_calc, Profit, missing = Profit)) 
 
 profit %>% filter(Diff == 1, is.na(Profit_calc))
 
+view(profit)
 
+```
 
+```{r}
 # Task 6 - Validate that revenue - product costs - customer service cost equals profit. 
-# To find the number of missing values (`NA`) you can create a new column counting the number of missing values:
+# To find the number of missing values (`NA`) you can create a new column counting the number of missing values across the columns:
 profit <- profit %>% 
   
   ## Calculate one row at a time
@@ -396,25 +210,22 @@ profit <- profit %>%
   # Ungroup data
   ungroup()
 
-## Filter profit for rows containg NA values in columns Revenue to Profit
+view(profit)
+
+## Filter profit for rows containing NA values in columns Revenue to Profit
 profit %>% filter(count_na >= 1)
 
-
+## Re-calculate from Revenue to Profit 
 profit <- profit %>% 
   
-  ## Calculate one row at a time
-  rowwise() %>% 
-  
-  ## Add new column counting number of NA across the columns Revenue to Profit
-  mutate(count_na = sum(is.na(c_across(Revenue:Profit)))) %>% 
-  
-  ## Calculate from Revenue to Profit 
   ### If the column is missing a single value (NA = 1), then calculate value, otherwise skip)
   mutate(Revenue = if_else(is.na(Revenue) & count_na == 1, Profit + Product.Cost + Customer.Service.Cost, Revenue, Revenue),
          Product.Cost = if_else(is.na(Product.Cost) & count_na == 1, Revenue - Customer.Service.Cost - Profit, Product.Cost, Product.Cost),
          Customer.Service.Cost = if_else(is.na(Customer.Service.Cost) & count_na == 1, Revenue - Product.Cost - Profit, Customer.Service.Cost, Customer.Service.Cost)) %>% 
+  
 select(Quarter:Profit)
 
+view(profit)
 
 # Check numbers
 profit %>% 
@@ -428,8 +239,9 @@ profit %>%
 
 # Comment: We went from 312 rows with missing values to 3 rows
 
+```
 
-
+```{r}
 # Task 7 - Find the two best rows with highest profit in each quarter.
 profit %>%
   group_by(Quarter) %>% 
@@ -441,8 +253,9 @@ profit %>%
   group_by(Quarter) %>% 
   slice_max(Profit, n = 2)
 
+```
 
-
+```{r}
 # Task 8 - Find the two best customers with highest profit in each quarter. Is the results the same as in Question 7?
 profit %>% 
   group_by(Quarter, Customer.ID) %>%
@@ -454,10 +267,11 @@ profit %>%
   summarize(Profit = sum(Profit)) %>% 
   slice_max(Profit, n = 2)
 
-# Answer: The results are not the same since use another group by.
+# Answer: The results are not the same since we use another group by.
 
+```
 
-
+```{r}
 # Task 9 - Find the product line, customer, channel, country and quarter with the highest profit.
 
 ## a)
@@ -528,7 +342,7 @@ profit %>%
 
 ## Smarter solutions
 
-### Using a funcion
+### Using a function
 summarise_profit <- function(data, group_var, summarise_var){
   data %>% 
     group_by(across({{group_var}})) %>% 
@@ -538,7 +352,7 @@ summarise_profit <- function(data, group_var, summarise_var){
 
 
 summarise_profit(profit, Product.Line, Profit)
-summarise_profit(profit, Customer.Service.Cost, Profit)
+summarise_profit(profit, Customer.ID, Profit)
 summarise_profit(profit, Channel, Profit)
 summarise_profit(profit, Country, Profit)
 summarise_profit(profit, Quarter, Profit)
@@ -558,24 +372,29 @@ max_profit <- map_df(
       )
     } 
   )
+
 max_profit
 
+```
 
-
+```{r}
 # Task 10 - Is there rows with the same customer in different countries?
 profit %>%
   group_by(Customer.ID) %>% 
   distinct(Country) %>% 
   count(Customer.ID)
 
+```
 
-
+```{r}
 # Task 11 - Sort the data decreasing with respect to profit and next revenue.
 profit %>%
   arrange(desc(Profit, Revenue))
 
+```
 
 
+```{r}
 # Task 12 - Which product line has the highest and lowest total cost?
 profit %>%
   group_by(Product.Line) %>% 
@@ -587,8 +406,9 @@ profit %>%
   summarise(cost = sum(Product.Cost + Customer.Service.Cost)) %>% 
   slice_min(cost)
 
+```
 
-
+```{r}
 # Task 13
 profit %>% 
   mutate(New.Customer.Service.Cost = Customer.Service.Cost * 1.05,
@@ -601,9 +421,3 @@ profit %>%
 rm(profit)
 
 ```
-
-
-
-
-
-
