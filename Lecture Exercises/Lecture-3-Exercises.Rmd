@@ -7,13 +7,16 @@ output:
   word_document: default
 repository_url: https://github.com/bss-osca/tfa/blob/master/slides/03-transform/03-transform_examples.Rmd
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))  # set working dir to current file location
-knitr::opts_chunk$set(echo = TRUE, 
-                      cache = TRUE, autodep = TRUE)
+knitr::opts_chunk$set(
+	echo = TRUE,
+	autodep = TRUE,
+	cache = TRUE
+)
 options(width = 100)  # set output width
 ```
 
@@ -69,6 +72,8 @@ Let us create two datasets:
 
 ```{r}
 dat1 <- hotels %>% filter(hotel == "Resort Hotel") %>% head()
+dat1
+
 dat2 <- hotels %>% filter(hotel == "City Hotel") %>% head()
 dat2 
 ```
@@ -92,7 +97,6 @@ dat <- list(hotel1 = dat1, hotel2 = dat2)
 
 # Your turn: finish the code 
 saveRDS(dat, "test.rds")
-
 
 ```
 
@@ -119,6 +123,7 @@ hotels <- read_csv(csv_file)
 glimpse(hotels)
 skim(hotels)
 # or use View(hotels) to see a spreadsheet-style data viewer
+
 ```
 
 A definition of all variables/columns is given in the [Data dictionary](#data-dir) section at the end, though you don't need to familiarize yourself with all variables.
@@ -131,7 +136,8 @@ Let us try different functions:
 View only the `lead_time` type (number of days between booking and arrival date):
 
 ```{r}
-hotels %>% select(lead_time) 
+hotels %>% 
+  select(lead_time) 
 ```
 
 Note that 
@@ -147,7 +153,8 @@ Note that
 View only the `hotel` type and `lead_time`:
 
 ```{r}
-hotels %>% select(hotel, lead_time)
+hotels %>% 
+  select(hotel, lead_time)
 ```
 
 What if we wanted to select these columns, and then arrange the data in descending order of lead time?
@@ -395,8 +402,6 @@ hotels %>%
   distinct(hotel, market_segment) %>% 
   arrange(hotel, market_segment)
 ```
-
-
 
 
 ### `count` to create frequency tables
